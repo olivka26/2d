@@ -277,8 +277,8 @@ void MainWindow::extrema_hunt(){
 
 void MainWindow::func_graph(){
     double x1, x2, x3, y1, y2, y3, z11, z13, z33, z31;
-    double delta_x=0.0001*(b-a)/nx;
-    double delta_y=0.0001*(d-c)/ny;
+    double delta_x=0.1*(b-a)/nx;
+    double delta_y=0.1*(d-c)/ny;
     x1=a;
     glBegin(GL_QUADS);
     glColor3d(1.0,0.0,0.0);
@@ -310,10 +310,10 @@ void MainWindow::func_graph(){
                     printf("(%lf,%lf,%lf)\n",x1,y3,z13);
                     printf("(%lf,%lf,%lf)\n",x3,y1,z31);
                     printf("(%lf,%lf,%lf)\n\n",x3,y3,z33);
-                    /*glVertex3d(x1, y1, z11);
+                    glVertex3d(x1, y1, z11);
                     glVertex3d(x1, y3, z13);
                     glVertex3d(x3, y1, z31);
-                    glVertex3d(x3, y3, z33);*/
+                    glVertex3d(x3, y3, z33);
                     y1=y3;
                     z11=z13;
                     z31=z33;
@@ -365,10 +365,10 @@ void MainWindow::appr_graph(){
                     printf("(%lf,%lf,%lf)\n",x1,y3,z13);
                     printf("(%lf,%lf,%lf)\n",x3,y1,z31);
                     printf("(%lf,%lf,%lf)\n\n",x3,y3,z33);
-                    /*glVertex3d(x1, y1, z11);
+                    glVertex3d(x1, y1, z11);
                     glVertex3d(x1, y3, z13);
                     glVertex3d(x3, y1, z31);
-                    glVertex3d(x3, y3, z33);*/
+                    glVertex3d(x3, y3, z33);
                     y1=y3;
                     copy(cy1,cy3,ny);
                     z11=z13;
@@ -391,7 +391,6 @@ void MainWindow::err_graph(){
     fill_chebysheva(cx1, nx);
     glBegin(GL_QUADS);
     glColor3d(0.0,0.0,1.0);
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     printf("err started\n");
     for(int i=0; i<=nx; ++i){
         if(i<nx)
@@ -424,10 +423,10 @@ void MainWindow::err_graph(){
                     printf("(%lf,%lf,%lf)\n",x1,y3,z13);
                     printf("(%lf,%lf,%lf)\n",x3,y1,z31);
                     printf("(%lf,%lf,%lf)\n\n",x3,y3,z33);
-                    /*glVertex3d(x1, y1, z11);
+                    glVertex3d(x1, y1, z11);
                     glVertex3d(x1, y3, z13);
                     glVertex3d(x3, y1, z31);
-                    glVertex3d(x3, y3, z33);*/
+                    glVertex3d(x3, y3, z33);
                     y1=y3;
                     copy(cy1,cy3,ny);
                     z11=z13;
@@ -440,6 +439,20 @@ void MainWindow::err_graph(){
     }
     printf("err ended\n");
     glEnd();
+}
+
+void MainWindow::printwindow(){
+    QPainter painter(this);
+    painter.setPen("black");
+    painter.drawText(0, 20, f_name);
+    painter.drawText(10, 30, QString("format: %1").arg(view_id));
+    painter.drawText(10, 45, QString("scale: %1 [%2;%3]x[%4;%5]").arg(s).arg(a).arg(b).arg(c).arg(d));
+    painter.drawText(10, 60, QString("points: %1,%2").arg(nx).arg(ny));
+    painter.drawText(10, 75, QString("p: %1").arg(p));
+    if(k==0 && p==0 && view_id!=4)
+        painter.drawText(10, 90, QString("absmax(fact): %1( %2)").arg(absmax).arg(absmax));
+    else
+        painter.drawText(10, 90, QString("absmax(fact): %1( %2)").arg(absmax).arg(max(fabs(extr[0]), fabs(extr[1]))));
 }
 
 MainWindow::~MainWindow(){
@@ -490,13 +503,22 @@ void MainWindow::paintGL(){
         func_graph();
     }
     if(view_id==1){
+        fill_Fx(Fx, cx, nx, a, b);
+        fill_Fy(Fy, cy, ny, c, d);
+        interpolation_tensor(T, TT, Fx, F, Fy, nx, ny);
+        extrema_hunt();
         printf("appr\n");
         appr_graph();
     }
     if(view_id==2){
+        fill_Fx(Fx, cx, nx, a, b);
+        fill_Fy(Fy, cy, ny, c, d);
+        interpolation_tensor(T, TT, Fx, F, Fy, nx, ny);
+        extrema_hunt();
         printf("err\n");
         err_graph();
     }
+    printwindow();
     print_console();
     glDisable(GL_DEPTH_TEST);
 }
@@ -554,24 +576,24 @@ void MainWindow::keyPressEvent(QKeyEvent* e){
             setDefaultCamera();
             break;
         case Qt::Key_Up:
-        angle_v += 5.0;
-        if (angle_v == 360)
-          angle_v = 0;
-        break;
-    case Qt::Key_Down:
-        angle_v -= 5.0;
-        if (angle_v == 360)
-          angle_v = 0;
-        break;
-    case Qt::Key_Left:
-        angle_h -= 5.0;
-        break;
-    case Qt::Key_Right:
-        angle_h += 5.0;
-        break;
-    case Qt::Key_Plus:
-        camera_p = max(camera_p - 0.1, 7);
-        break;
+            angle_v += 5.0;
+            if(angle_v == 360)
+                angle_v = 0;
+            break;
+        case Qt::Key_Down:
+            angle_v -= 5.0;
+            if(angle_v == 360)
+                angle_v = 0;
+            break;
+        case Qt::Key_Left:
+            angle_h -= 5.0;
+            break;
+        case Qt::Key_Right:
+            angle_h += 5.0;
+            break;
+        case Qt::Key_Plus:
+            camera_p = max(camera_p - 0.1, 7);
+            break;
     }
     update();
 }
@@ -604,7 +626,8 @@ void MainWindow::setProjectionMatrix(){
     glLoadIdentity();
     glRotated(angle_h, 0, 0, 1);
     glGetFloatv(GL_PROJECTION_MATRIX, tmp);
-    glLoadTransposeMatrixf(projection);
+    //glLoadTransposeMatrixf(projection);
+    glLoadMatrixf(projection);
     glMultMatrixf(view);
     glRotated(angle_h, 0, 0, 1);
     glRotated(angle_v, tmp[0], tmp[4], tmp[8]);

@@ -9,8 +9,6 @@
 //#include <gl/GL.h>
 //#include <gl/GLU.h>
 #include <QtWidgets/QWidget>
-#pragma comment(lib, opengl32.lib)
-#pragma comment(lib, GLU32.lib)
 #include "chebyshev.hpp"
 #include "help.hpp"
 
@@ -54,6 +52,7 @@ public:
     void func_graph();
     void appr_graph();
     void err_graph();
+    void printwindow();
     ~MainWindow();
 protected:
     virtual void paintGL();
