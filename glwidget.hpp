@@ -42,6 +42,7 @@ private:
     double *cx3; //vector of chebyshev values in x3
     double *cy3; //vector of chebyshev values in y3
     double extr[2]; //factic extrema
+    double B[4];
 public:
     //MainWindow(QGLWidget *parent=nullptr);
     int parse_command_line(int argc, char *argv[]);
