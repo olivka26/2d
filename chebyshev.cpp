@@ -35,7 +35,7 @@ void chebyshevpoints(double *cx, double *cy, int nx, int ny, double *F, double a
             F[i*ny+j]=f(cx[i], cy[j]);
             printf("f(%d,%d)=%lf\n", i, j, F[i*ny+j]);
         }
-        if(i && i!=nx){
+        if(i && i!=nx+1){
             angley=stepy/2.0;
             anglex+=stepx;
         }

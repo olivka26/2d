@@ -175,13 +175,13 @@ void MainWindow::extrema_hunt(){
         }
     }
     if(view_id==2){
-        TT[0]=F[0]-T[0];
-        TT[0]=F[0]-T[0];
+        TT[0]=F[0]-TT[0];
+        TT[0]=F[0]-TT[0];
         extr[0]=TT[0];
         extr[1]=TT[0];
         for(int i=0; i<=nx+1; ++i){
             for(int j=0; j<=ny+1; ++j){
-                TT[i*(ny+2)+j]=F[i*(ny+2)+j]-T[i*(ny+2)+j];
+                TT[i*(ny+2)+j]=F[i*(ny+2)+j]-TT[i*(ny+2)+j];
                 if(TT[i*(ny+2)+j]>extr[1])
                     extr[1]=TT[i*(ny+2)+j];
                 if(TT[i*(ny+2)+j]<extr[0])
@@ -322,6 +322,7 @@ void MainWindow::paintGL(){
         interpolation_tensor(T, Fx, F, Fy, nx, ny);
         Fill_TT(Fx, nx, T, Fy, ny, TT);
         extrema_hunt();
+        absmax=max(fabs(extr[0]), fabs(extr[1]));
     }
     printf("%lf;%lf",extr[0], extr[1]);
     if(view_id==0){
