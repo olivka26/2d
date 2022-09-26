@@ -72,43 +72,13 @@ void fill_Fy(double *Fy, double *cy, int ny, double c, double d){
     }
 }
 
-void multiplication(double *res, double *A, int na, int m, int nb, double *B){
-    for(int i=0; i<na; ++i){
-        for(int j=0; j<nb; ++j){
-            res[i*nb+j]=0;
-            for(int k=0; k<m; ++k)
-                res[i*nb+j]+=(A[i*m+k]*B[k*nb+j]);
-        }
+double fscalar_ij(int i, int nx, double *Fx, double *F, double *Fy, int ny, int j){
+    double res=0;
+    for(int k=0; k<nx; ++k){
+        for(int l=0; l<ny; ++l)
+            res+=(Fx[i*nx+k]*F[(k+1)*(ny+1)+l+1]*Fy[l*ny+j]);
     }
-}
-
-void interpolation_tensor(double *T, double *TT, double *Fx, double *F, double *Fy, int nx, int ny){
-    for(int i=0; i<na; ++i){
-        for(int j=0; j<nb; ++j){
-            TT[i*nb+j]=0;
-            for(int k=0; k<m; ++k)
-                TT[i*nb+j]+=(Fx[i*m+k]*F[k*nb+j]);
-        }
-    }
-    for(int i=0; i<na; ++i){
-        for(int j=0; j<nb; ++j){
-            T[i*nb+j]=0;
-            for(int k=0; k<m; ++k)
-                res[i*nb+j]+=(A[i*m+k]*B[k*nb+j]);
-        }
-    }
-    multiplication(TT, Fx, nx, nx, ny, F);
-    multiplication(T, TT, nx, ny, ny, Fy);
-    for(int i=0; i<nx; ++i){
-        for(int j=0; j<ny; ++j){
-            T[i*ny+j]/=nx;
-            T[i*ny+j]/=ny;
-            if(i)
-                T[i*ny+j]*=2;
-            if(j)
-                T[i*ny+j]*=2;
-        }
-    }
+    return res;
 }
 
 double scalar_ij(int i, int nx, double *Fx, double *T, double *Fy, int ny, int j){
@@ -178,7 +148,6 @@ double scalar_ad(int nx, double *T, int ny){
     for(int k=0; k<nx; ++k){
         for(int l=0; l<ny; ++l){
             res+=(u*T[k*ny+l]);
-            v*=(-1);
         }
         u*=(-1);
     }
@@ -206,18 +175,37 @@ double scalar_bd(int nx, double *T, int ny){
     return res;
 }
 
-
-void Fill_TT(double *Fx, int nx, double *T, double *Fy, int ny, double *TT){
-    for(int i=0;i<nx;++i){
-        for(int j=0;j<ny;++j){
-            TT[i*ny+j]=scalar_ij(i, nx, Fx, T, Fy, ny, j);
+void interpolation_tensor(double *T, double *Fx, double *F, double *Fy, int nx, int ny){
+    for(int i=0; i<nx; ++i){
+        for(int j=0; j<ny; ++j){
+            T[i*ny+j]=fscalar_ij(i, nx, Fx, F, Fy, ny, j);
+            T[i*ny+j]/=nx;
+            T[i*ny+j]/=ny;
+            if(i==0)
+                T[i*ny+j]*=2;
+            if(j==0)
+                T[i*ny+j]*=2;
         }
     }
 }
 
-void Fill_B(double B[4], double a, double b, double c, double d){
-    B[0]=scalar_ad(nx, T, ny);
-    B[1]=scalar_bd(nx, T, ny);
-    B[2]=scalar_ac(nx, T, ny);
-    B[3]=scalar_bc(nx, T, ny);
+void Fill_TT(double *Fx, int nx, double *T, double *Fy, int ny, double *TT){
+    for(int i=0;i<nx;++i){
+        for(int j=0;j<ny;++j){
+            TT[(i+1)*(ny+1)+j+1]=scalar_ij(i, nx, Fx, T, Fy, ny, j);
+        }
+    }
+    for(int j=0;j<ny;++j){
+        TT[j+1]=scalar_aj(nx, T, Fy, ny, j);
+        TT[(nx+1)*(ny+2)+j+1]=scalar_bj(nx, T, Fy, ny, j);
+    }
+    for(int i=0;i<nx;++i){
+        TT[(i+1)*(ny+2)]=scalar_ic(i, nx, Fx, T, ny);
+        TT[(i+1)*(ny+2)+ny+1]=scalar_id(i, nx, Fx, T, ny);
+    }
+    TT[0]=scalar_ac(nx, T, ny);
+    TT[ny+1]=scalar_ad(nx, T, ny);
+    TT[(nx+1)*(ny+2)]=scalar_bc(nx, T, ny);
+    TT[(nx+2)*(ny+2)-1]=scalar_bd(nx, T, ny);
 }
+

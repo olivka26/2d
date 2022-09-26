@@ -37,12 +37,7 @@ private:
     double *TT; //intermediate matrix
     double *cx; //array of points by X
     double *cy; //array of points by Y
-    double *cx1; //vector of chebyshev values in x1
-    double *cy1; //vector of chebyshev values in y1
-    double *cx3; //vector of chebyshev values in x3
-    double *cy3; //vector of chebyshev values in y3
     double extr[2]; //factic extrema
-    double B[4];
 public:
     //MainWindow(QGLWidget *parent=nullptr);
     int parse_command_line(int argc, char *argv[]);
