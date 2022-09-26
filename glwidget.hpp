@@ -6,11 +6,12 @@
 #include <QPainter>
 #include <QDebug>
 #include <QtOpenGL>
-//#include <gl/GL.h>
-//#include <gl/GLU.h>
 #include <QtWidgets/QWidget>
 #include "chebyshev.hpp"
 #include "help.hpp"
+#include "ui_mainwindow.hpp"
+#include <QtWidgets/QMessageBox>
+
 
 class MainWindow :public QGLWidget{
     Q_OBJECT

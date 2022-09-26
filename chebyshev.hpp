@@ -1,8 +1,7 @@
 #ifndef chebyshev_hpp
 #define chebyshev_hpp
-
-#include <stdio.h>
 #include <cmath>
+#include <cstdio>
 
 void chebyshevpoints(double *cx, double *cy, int nx, int ny, double *F, double a, double b, double c, double d, double (*f)(double, double));
 double chebyshevtrans(double a, double b, double x);

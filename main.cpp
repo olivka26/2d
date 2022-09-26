@@ -1,5 +1,4 @@
 #include <qapplication.h>
-#include <qgl.h>
 #include <QMainWindow>
 #include <QMenuBar>
 #include "glwidget.hpp"

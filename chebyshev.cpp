@@ -20,24 +20,24 @@ void chebyshevpoints(double *cx, double *cy, int nx, int ny, double *F, double a
             cx[i]=cos(anglex);
             cx[i]*=semidifx;
             cx[i]+=semisumx;
-        }
-        for(int j=ny+1;j>=0;--j){
-            if(i==ny+1)
-                cy[ny+1]=d;
-            else if(i==0)
-                cy[0]=c;
-            else{
-                cy[j]=cos(angley);
-                cy[j]*=semidify;
-                cy[j]+=semisumy;
-                angley+=stepy;
-            }
-            F[i*ny+j]=f(cx[i], cy[j]);
-            printf("f(%d,%d)=%lf\n", i, j, F[i*ny+j]);
-        }
-        if(i && i!=nx+1){
-            angley=stepy/2.0;
             anglex+=stepx;
+        }
+    }
+    for(int j=ny+1;j>=0;--j){
+        if(j==ny+1)
+            cy[ny+1]=d;
+        else if(j==0)
+            cy[0]=c;
+        else{
+            cy[j]=cos(angley);
+            cy[j]*=semidify;
+            cy[j]+=semisumy;
+            angley+=stepy;
+        }
+    }
+    for(int i=0;i<=nx+1;++i){
+        for(int j=0;j<=ny+1;++j){
+            F[i*(ny+2)+j]=f(cx[i], cy[j]);
         }
     }
 }
@@ -76,8 +76,14 @@ double fscalar_ij(int i, int nx, double *Fx, double *F, double *Fy, int ny, int 
     double res=0;
     for(int k=0; k<nx; ++k){
         for(int l=0; l<ny; ++l)
-            res+=(Fx[i*nx+k]*F[(k+1)*(ny+1)+l+1]*Fy[l*ny+j]);
+            res+=(Fx[i*nx+k]*F[(k+1)*(ny+2)+l+1]*Fy[l*ny+j]);
     }
+    res/=nx;
+    res/=ny;
+    if(i)
+        res*=2;
+    if(j)
+        res*=2;
     return res;
 }
 
@@ -179,12 +185,6 @@ void interpolation_tensor(double *T, double *Fx, double *F, double *Fy, int nx, 
     for(int i=0; i<nx; ++i){
         for(int j=0; j<ny; ++j){
             T[i*ny+j]=fscalar_ij(i, nx, Fx, F, Fy, ny, j);
-            T[i*ny+j]/=nx;
-            T[i*ny+j]/=ny;
-            if(i==0)
-                T[i*ny+j]*=2;
-            if(j==0)
-                T[i*ny+j]*=2;
         }
     }
 }
@@ -192,7 +192,7 @@ void interpolation_tensor(double *T, double *Fx, double *F, double *Fy, int nx, 
 void Fill_TT(double *Fx, int nx, double *T, double *Fy, int ny, double *TT){
     for(int i=0;i<nx;++i){
         for(int j=0;j<ny;++j){
-            TT[(i+1)*(ny+1)+j+1]=scalar_ij(i, nx, Fx, T, Fy, ny, j);
+            TT[(i+1)*(ny+2)+j+1]=scalar_ij(i, nx, Fx, T, Fy, ny, j);
         }
     }
     for(int j=0;j<ny;++j){
@@ -208,4 +208,3 @@ void Fill_TT(double *Fx, int nx, double *T, double *Fy, int ny, double *TT){
     TT[(nx+1)*(ny+2)]=scalar_bc(nx, T, ny);
     TT[(nx+2)*(ny+2)-1]=scalar_bd(nx, T, ny);
 }
-

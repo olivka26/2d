@@ -1,41 +1,9 @@
 #include "glwidget.hpp"
-#include "ui_mainwindow.hpp"
+/*#include "ui_mainwindow.hpp"
 #include <stdio.h>
 #include <cmath>
 #include <iostream>
-#include <QtWidgets/QMessageBox>
-
-static double f0(double x, double y){
-    return 1;
-}
-
-static double f1(double x, double y){
-    return x;
-}
-
-static double f2(double x, double y){
-    return y;
-}
-
-static double f3(double x, double y){
-    return x+y;
-}
-
-static double f4(double x, double y){
-    return sqrt(x*x+y*y);
-}
-
-static double f5(double x, double y){
-    return x*x+y*y;
-}
-
-static double f6(double x, double y){
-    return exp(x*x-y*y);
-}
-
-static double f7(double x, double y){
-    return 1/(25*(x*x+y*y)+1);
-}
+#include <QtWidgets/QMessageBox>*/
 
 int MainWindow::parse_command_line(int argc, char *argv[]){
     FILE *f;
@@ -48,10 +16,6 @@ int MainWindow::parse_command_line(int argc, char *argv[]){
     fscanf(f, "%lf", &c);
     fscanf(f, "%lf", &b);
     fscanf(f, "%lf", &d);
-    printf("%lf ", &a);
-    printf("%lf ", &c);
-    printf("%lf ", &b);
-    printf("%lf \n", &d);
     if(fabs(a-b)<1e-6 || fabs(c-d)<1e-6)
         return -2;
     fclose(f);
@@ -64,8 +28,7 @@ int MainWindow::parse_command_line(int argc, char *argv[]){
     k=atoi(argv[4]);
     if(k<0 || k>7)
         return -2;
-    k=(k-1)%8;
-    change_func();
+    update();
     return 0;
 }
 
@@ -93,7 +56,7 @@ void MainWindow::print_console(){
 }
 
 void MainWindow::change_func(){
-    k=(k+1)%8;
+    //k=(k+1)%8;
     switch(k){
         case 0:
             f_name="k=0 f(x,y)=1";
@@ -158,7 +121,7 @@ void MainWindow::change_func(){
             absmax=max_z;
             break;
     }
-    update();
+   // update();
 }
 
 void MainWindow::extrema_hunt(){
@@ -173,9 +136,9 @@ void MainWindow::extrema_hunt(){
                     extr[0]=TT[i*(ny+2)+j];
             }
         }
+        printf("extrema_hunt_appr: %lf;%lf\n", extr[0], extr[1]);
     }
     if(view_id==2){
-        TT[0]=F[0]-TT[0];
         TT[0]=F[0]-TT[0];
         extr[0]=TT[0];
         extr[1]=TT[0];
@@ -188,6 +151,7 @@ void MainWindow::extrema_hunt(){
                     extr[0]=TT[i*(ny+2)+j];
             }
         }
+        printf("extrema_hunt_err: %lf;%lf\n", extr[0], extr[1]);
     }
 }
 
@@ -255,7 +219,7 @@ void MainWindow::err_graph(){
     glLoadIdentity();
     glPushMatrix();
     glBegin(GL_LINE_STRIP);
-    glColor3f(0.0,1.0,0.0);
+    glColor3f(0.0,0.0,1.0);
     printf("err started");
     for(int i=0; i<=nx+1; ++i){
         for(int j=0; j<=nx+1; ++j){
@@ -281,7 +245,7 @@ void MainWindow::err_graph(){
 void MainWindow::printwindow(){
     QPainter painter(this);
     painter.setPen("black");
-    painter.drawText(0, 20, f_name);
+    painter.drawText(10, 20, f_name);
     painter.drawText(10, 30, QString("format: %1").arg(view_id));
     painter.drawText(10, 45, QString("scale: %1 [%2;%3]x[%4;%5]").arg(s).arg(a).arg(b).arg(c).arg(d));
     painter.drawText(10, 60, QString("points: %1,%2").arg(nx).arg(ny));
@@ -309,10 +273,8 @@ void MainWindow::paintGL(){
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     allocate();
-    printf("segment: [%lf;%lf]x[%lf;%lf]\n", a,b,c,d);
-    printf("points: %d %d\n", nx,ny);
+    change_func();
     chebyshevpoints(cx, cy, nx, ny, F, a, b, c, d, f);
-    printf("ok\n");
     if(p!=0){
         F[(ny+2)*(1+nx/2)+(1+ny/2)]+=(p*0.1*absmax);
     }
@@ -321,10 +283,30 @@ void MainWindow::paintGL(){
         fill_Fy(Fy, cy, ny, c, d);
         interpolation_tensor(T, Fx, F, Fy, nx, ny);
         Fill_TT(Fx, nx, T, Fy, ny, TT);
+        printf("matrix F:\n");
+        for(int i=0;i<=nx+1;++i){
+            for(int j=0;j<=ny+1;++j){
+                printf("%lf ", F[(ny+2)*i+j]);
+            }
+            printf("\n");
+        }
+        printf("matrix TT:\n");
+        for(int i=0;i<=nx+1;++i){
+            for(int j=0;j<=ny+1;++j){
+                printf("%lf ", TT[(ny+2)*i+j]);
+            }
+            printf("\n");
+        }
+        printf("matrix residue:\n");
+        for(int i=0;i<=nx+1;++i){
+            for(int j=0;j<=ny+1;++j){
+                printf("%lf ", F[(ny+2)*i+j]-TT[(ny+2)*i+j]);
+            }
+            printf("\n");
+        }
         extrema_hunt();
         absmax=max(fabs(extr[0]), fabs(extr[1]));
     }
-    printf("%lf;%lf",extr[0], extr[1]);
     if(view_id==0){
         printf("func\n");
         func_graph();
@@ -344,11 +326,12 @@ void MainWindow::paintGL(){
 
 void MainWindow::initializeGL(){
     glClearColor(1.0, 1.0, 1.0, 1.0);
-   glEnable(GL_DEPTH_TEST);
-   glShadeModel(GL_FLAT);
-   glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+    glShadeModel(GL_FLAT);
+    glEnable(GL_CULL_FACE);
     setDefaultCamera();
-    change_func();
+    //k=(k-1)%8;
+    //change_func();
 }
 
 void MainWindow::resizeGL(int nWidth, int nHeight){
